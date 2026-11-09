@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import {MAPS, LANES, at, bearingOf, initWorld, loadMap as loadWorldMap, makeCar, placeCamera, repaint, tagSprite, world} from './world.js';
+import {MAPS, LANES, at, bearingOf, initWorld, loadMap as loadWorldMap, makeCar, placeCamera, repaint, tagSprite, world} from './world3d.js';
 
 // ---------- config (URL params) ----------
 const params = new URLSearchParams(location.search);
-const LOW = params.get('quality') === 'low';           // no GPU (CI runners): smaller render, no shadows
+const LOW = params.get('quality') !== 'high';           // no GPU (CI runners): smaller render, no shadows
 const LAPS = Number(params.get('laps') || 4);
 const BASE_LAP_S = 72;                                   // a lap with nobody answering; the race never stands still
 const Q_TIME = Number(params.get('qtime') || 14);        // answer window as the viewer sees it
@@ -433,7 +433,7 @@ if (params.get('music') !== '0') {
 
 (async () => {
 	const first = params.get('map') ? MAPS.find((m) => m.id === params.get('map')) : MAPS[Math.floor(Math.random() * MAPS.length)];
-	await initWorld('map', LOW);
+	await initWorld('gl', LOW);
 	try { await loadWorldMap(first); } catch (e) { console.warn('[map] first load failed', e); }
 	showPlace();
 	requestAnimationFrame(frame);
