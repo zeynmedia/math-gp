@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,900;1,900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+	body { margin: 0; width: 1280px; height: 720px; overflow: hidden; font-family: 'Titillium Web', sans-serif; color: #fff;
+		background: linear-gradient(120deg, #0b0b12 0%, #1a0505 55%, #e10600 140%); position: relative; }
+	.grid { position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 60px, rgba(255,255,255,0.03) 60px 62px); }
+	.live { position: absolute; top: 46px; left: 60px; display: flex; align-items: center; gap: 14px; background: #e10600; padding: 8px 26px; font: 900 44px 'Titillium Web'; border-radius: 8px; }
+	.live i { width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+	h1 { position: absolute; left: 56px; top: 130px; margin: 0; font: italic 900 190px/0.9 'Titillium Web'; letter-spacing: -2px; }
+	h1 b { color: #e10600; }
+	.sum { position: absolute; left: 64px; top: 360px; font: 400 150px 'Bebas Neue'; color: #ffcf3f; text-shadow: 0 6px 0 rgba(0,0,0,0.4); }
+	.sub { position: absolute; left: 64px; bottom: 60px; font: 900 46px 'Titillium Web'; }
+	.sub span { color: #ffcf3f; }
+	.chk { position: absolute; right: -40px; top: -40px; width: 560px; height: 800px; transform: rotate(12deg);
+		background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / 70px 70px; opacity: 0.12; }
+	.cars { position: absolute; right: 70px; top: 190px; display: flex; flex-direction: column; gap: 18px; }
+	.car { width: 330px; height: 62px; border-radius: 10px; display: flex; align-items: center; padding: 0 20px; font: 900 34px 'Titillium Web'; color: #111; }
+</style></head><body>
+<div class="grid"></div><div class="chk"></div>
+<div class="live"><i></i>CANLI 7/24</div>
+<h1>MATH <b>GP</b></h1>
+<div class="sum">7 + 8 = ? 🏎️</div>
+<div class="cars">
+	<div class="car" style="background:#ffc800">1 · STARS</div>
+	<div class="car" style="background:#ff2a1f;color:#fff">2 · ZORE</div>
+	<div class="car" style="background:#3d8bff;color:#fff">3 · THUNDER</div>
+	<div class="car" style="background:#22e07e">4 · VENOM</div>
+	<div class="car" style="background:#ff8a1f">5 · BLAZE</div>
+</div>
+<div class="sub">Yorumla takıma gir · <span>hızlı çöz, arabanı uçur!</span></div>
+</body></html>

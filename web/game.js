@@ -440,3 +440,26 @@ if (params.get('music') !== '0') {
 	startLights();
 	window.gameReady = true;
 })();
+
+// ---------- site mode (?chat=1): live chat and the all-time board come from the Cloudflare worker ----------
+if (params.get('chat')) {
+	const status = (t) => { $('camtag').dataset.chat = t; };
+	(async function chatLoop() {
+		let c = null;
+		for (;;) {
+			try {
+				const r = await (await fetch('/api/chat' + (c ? `?c=${encodeURIComponent(c)}` : (params.get('channel') ? `?channel=${encodeURIComponent(params.get('channel'))}` : '')))).json();
+				for (const m of r.messages || []) window.chatMessage(m.author, m.text, false, m.ts || null);
+				c = r.live ? r.c : null;
+				status(r.live ? 'live' : 'waiting');
+				await new Promise((ok) => setTimeout(ok, r.live ? r.wait || 1500 : 20000));
+			} catch (e) {
+				c = null; status('error');
+				await new Promise((ok) => setTimeout(ok, 15000));
+			}
+		}
+	})();
+	fetch('/api/board').then((r) => r.json()).then((b) => window.loadBoard(b)).catch(() => {});
+	const key = params.get('key');
+	if (key) setInterval(() => fetch('/api/board', {method: 'POST', headers: {'x-board-key': key}, body: JSON.stringify(window.exportBoard())}).catch(() => {}), 5 * 60 * 1000);
+}
