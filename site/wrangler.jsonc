@@ -4,6 +4,6 @@
 	"compatibility_date": "2026-10-01",
 	"account_id": "0b9c3ab32ae1321fc3fb264bee957587",
 	"assets": {"directory": "../web", "binding": "ASSETS", "run_worker_first": ["/api/*"]},
-	"routes": [{"pattern": "mathgp.zeynelerek.com", "custom_domain": true}],
+	"workers_dev": true,
 	"kv_namespaces": [{"binding": "KV", "id": "860f7ccb47c14931aa3dfb8a11606217"}]
 }
