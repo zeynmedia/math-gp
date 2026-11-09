@@ -1,0 +1,70 @@
+name: Math GP Live
+
+# 24/7: each run streams ~5h45m and dispatches the next one 12 minutes before it ends, alternating
+# YouTube's primary/backup ingest so the handover has no gap. The watchdog restarts the chain if it breaks.
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Yayın süresi (dakika, en fazla 345)"
+        default: "345"
+      ingest:
+        description: "YouTube girişi"
+        type: choice
+        options: [primary, backup]
+        default: primary
+      chain:
+        description: "Bitmeden sıradaki koşuyu başlat (7/24)"
+        type: boolean
+        default: true
+  schedule:
+    - cron: "*/20 * * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  watchdog:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Restart the chain if nothing is streaming
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          active=$(gh run list -w live.yml --json status,event --jq '[.[] | select(.event == "workflow_dispatch" and (.status == "in_progress" or .status == "queued"))] | length')
+          echo "active runs: $active"
+          if [ "$active" = "0" ]; then gh workflow run live.yml -f ingest=primary -f chain=true; fi
+
+  stream:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      LIVE_STREAM_KEY: ${{ secrets.LIVE_STREAM_KEY }}
+      LIVE_CHANNEL_URL: ${{ vars.LIVE_CHANNEL_URL }}
+      LIVE_MINUTES: ${{ inputs.minutes }}
+      LIVE_INGEST: ${{ inputs.ingest }}
+      LIVE_CHAIN: ${{ inputs.chain }}
+      LIVE_QUERY: ${{ vars.LIVE_QUERY || 'quality=low&music=0&latency=4' }}
+      GH_TOKEN: ${{ github.token }}
+      DISPLAY: ":99"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        timeout-minutes: 12
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          pip install -q playwright==1.49.1 chat-downloader==0.2.8
+          python -m playwright install --with-deps chromium
+      - name: Stream
+        run: |
+          Xvfb :99 -screen 0 1080x1920x24 -nolisten tcp &
+          sleep 2
+          python stream/stream.py

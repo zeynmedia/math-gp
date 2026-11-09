@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math GP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Titillium+Web:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Titillium Web', sans-serif; color: #fff; }
+	#stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; overflow: hidden; transform-origin: center center; background: #000; }
+	#map { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+	.maplibregl-ctrl-attrib { font-size: 16px !important; opacity: 0.7; }
+	.ui { position: absolute; }
+	#brand { top: 30px; left: 36px; display: flex; align-items: center; gap: 12px; font: italic 900 34px 'Titillium Web'; letter-spacing: 1px; }
+	#brand i { width: 14px; height: 40px; background: #e10600; transform: skewX(-18deg); }
+	#lap { top: 30px; right: 36px; background: rgba(15,15,20,0.85); border-left: 8px solid #e10600; padding: 6px 22px; font: 900 34px 'Titillium Web'; }
+	#lap b { color: #e10600; }
+	#qbox { top: 104px; left: 50px; right: 50px; height: 236px; border-radius: 10px; background: linear-gradient(180deg, rgba(22,22,30,0.93), rgba(10,10,16,0.93));
+		border-top: 8px solid #e10600; box-shadow: 0 20px 60px rgba(0,0,0,0.6); overflow: hidden; display: flex; }
+	#qbox .half { flex: 1; text-align: center; padding-top: 14px; }
+	#qbox .half + .half { border-left: 2px solid rgba(255,255,255,0.1); }
+	#qbox .lbl { font: 900 28px 'Titillium Web'; letter-spacing: 4px; }
+	#lbleasy { color: #36f07e; } #lblhard { color: #ffcf3f; }
+	#qeasy, #qhard { font: 400 112px/1.05 'Bebas Neue'; letter-spacing: 4px; }
+	#qlabel { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font: 700 24px 'Titillium Web'; letter-spacing: 3px; color: #b9bccb; }
+	#qtimer { position: absolute; left: 0; bottom: 0; height: 10px; background: linear-gradient(90deg, #e10600, #ffcf3f, #36f07e); }
+	#qbox.solved { animation: solved 0.5s; }
+	#qbox.waiting #qtimer { background: #6b6f80; }
+	@keyframes solved { 30% { transform: scale(1.03); box-shadow: 0 0 80px rgba(54,240,126,0.6); } }
+	#solver { top: 352px; left: 0; right: 0; text-align: center; font: 900 36px 'Titillium Web'; text-shadow: 0 3px 10px #000, 0 0 20px #000; opacity: 0; transition: opacity 0.2s; }
+	#tower { top: 430px; left: 26px; width: 330px; }
+	.trow { position: absolute; left: 0; height: 64px; width: 330px; display: flex; align-items: center; background: rgba(12,12,18,0.82);
+		border-bottom: 2px solid rgba(255,255,255,0.06); transition: top 0.45s cubic-bezier(.2,.8,.2,1); }
+	.trow .p { width: 50px; text-align: center; font: 900 30px 'Titillium Web'; }
+	.trow .c { width: 8px; height: 40px; }
+	.trow .n { flex: 1; padding-left: 14px; font: 900 30px 'Titillium Web'; }
+	.trow .g { padding-right: 14px; font: 700 22px 'Titillium Web'; color: #c7c9d6; text-align: right; line-height: 1.05; }
+	.trow.lead { background: rgba(225,6,0,0.85); } .trow.lead .g { color: #fff; }
+	#place { top: 1508px; left: 30px; font: 900 30px 'Titillium Web'; letter-spacing: 2px; text-shadow: 0 2px 8px #000; }
+	#camtag { top: 1560px; left: 30px; right: 30px; font: 700 22px 'Titillium Web'; letter-spacing: 3px; opacity: 0.8; text-shadow: 0 2px 6px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	#feed { top: 1612px; left: 26px; right: 26px; height: 210px; overflow: hidden; }
+	.fi { position: absolute; left: 0; font: 700 28px/1.2 'Titillium Web'; text-shadow: 0 2px 6px #000, 0 0 12px #000; transition: top 0.3s, opacity 0.3s; white-space: nowrap; }
+	.fi em { font-style: normal; font-weight: 900; }
+	#hint { bottom: 26px; left: 0; right: 0; text-align: center; font: 900 30px 'Titillium Web'; text-shadow: 0 3px 8px #000; }
+	#hint span { color: #ffcf3f; }
+	#lights { top: 700px; left: 0; right: 0; display: none; justify-content: center; gap: 22px; }
+	#lights.show { display: flex; }
+	.light { width: 150px; height: 340px; border-radius: 22px; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: space-around; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
+	.light i { width: 104px; height: 104px; border-radius: 50%; background: #2a0505; }
+	.light.on i { background: radial-gradient(circle at 40% 35%, #ff6b6b, #e10600 60%); box-shadow: 0 0 50px #ff1f1f; }
+	#go { top: 760px; left: 0; right: 0; text-align: center; font: 400 300px 'Bebas Neue'; color: #36f07e; text-shadow: 0 0 60px rgba(54,240,126,0.7); display: none; }
+	#vote { top: 430px; left: 60px; right: 60px; display: none; flex-direction: column; gap: 22px; }
+	#vote.show { display: flex; animation: pop 0.4s ease-out; }
+	#vote h3 { font: italic 900 70px 'Titillium Web'; text-align: center; text-shadow: 0 4px 14px #000; }
+	#vote p { font: 900 34px 'Titillium Web'; text-align: center; text-shadow: 0 3px 10px #000; }
+	.vcard { position: relative; height: 150px; display: flex; align-items: center; gap: 24px; padding: 0 30px; background: rgba(10,10,16,0.82); border-left: 10px solid #e10600; overflow: hidden; isolation: isolate; }
+	.vcard b { font: 900 90px 'Titillium Web'; color: #ffcf3f; width: 70px; }
+	.vcard .vn { flex: 1; font: 900 54px/1 'Titillium Web'; }
+	.vcard .vn small { display: block; font: 700 28px 'Titillium Web'; opacity: 0.75; letter-spacing: 4px; margin-top: 6px; }
+	.vcard .vc { font: 400 90px 'Bebas Neue'; }
+	.vcard .vf { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(225,6,0,0.35); z-index: -1; transition: width 0.4s; }
+	#timer { top: 352px; left: 0; right: 0; text-align: center; font: 400 70px 'Bebas Neue'; text-shadow: 0 3px 10px #000; }
+	#banner { top: 820px; left: 0; right: 0; text-align: center; display: none; font: 700 40px 'Titillium Web'; letter-spacing: 6px; text-shadow: 0 4px 14px #000; }
+	#banner b { display: block; font: italic 900 100px 'Titillium Web'; letter-spacing: 1px; }
+	#banner.show { display: block; animation: pop 0.4s ease-out; }
+	#podium { inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+		background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.82) 34%, rgba(0,0,0,0.93)); }
+	#podium.show { display: flex; animation: pop 0.5s ease-out; }
+	@keyframes pop { from { opacity: 0; transform: scale(1.06); } }
+	#podium .chk { width: 600px; height: 50px; background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / 50px 50px; }
+	#podium h2 { font: 900 40px 'Titillium Web'; letter-spacing: 8px; color: #ffcf3f; }
+	#podium h1 { font: italic 900 110px/1 'Titillium Web'; }
+	.boards { display: flex; gap: 26px; width: 1000px; margin-top: 12px; }
+	.col { flex: 1; }
+	.col h4 { font: 900 34px 'Titillium Web'; letter-spacing: 4px; margin-bottom: 10px; border-bottom: 4px solid #e10600; padding-bottom: 6px; }
+	.lb { display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: rgba(255,255,255,0.07); margin-bottom: 8px; font: 900 32px 'Titillium Web'; }
+	.lb .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.lb .nm i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-left: 8px; }
+	.lb .ct { font: 400 42px 'Bebas Neue'; color: #ffcf3f; }
+	#next { font: 700 30px 'Titillium Web'; opacity: 0.85; margin-top: 8px; }
+</style>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="stage">
+	<div id="map"></div>
+	<div class="ui" id="brand"><i></i>MATH GP</div>
+	<div class="ui" id="lap"></div>
+	<div class="ui" id="qbox">
+		<div class="half"><div class="lbl" id="lbleasy"></div><div id="qeasy">…</div></div>
+		<div class="half"><div class="lbl" id="lblhard"></div><div id="qhard">…</div></div>
+		<div id="qlabel"></div><div id="qtimer"></div>
+	</div>
+	<div class="ui" id="solver"></div>
+	<div class="ui" id="timer"></div>
+	<div class="ui" id="tower"></div>
+	<div class="ui" id="place"></div>
+	<div class="ui" id="camtag"></div>
+	<div class="ui" id="feed"></div>
+	<div class="ui" id="hint"></div>
+	<div class="ui" id="lights"></div>
+	<div class="ui" id="go">GO!</div>
+	<div class="ui" id="vote"></div>
+	<div class="ui" id="banner"></div>
+	<div class="ui" id="podium"></div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
